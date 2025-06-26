@@ -36,8 +36,8 @@ function App() {
                 <span className="text-white font-bold text-lg">J</span>
               </div>
               <div>
-                <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>JWT Toolkit</h1>
-                <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Professional JWT Suite</p>
+                <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>JWTBench</h1>
+                <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Modern JWT Developer Bench</p>
               </div>
             </div>
 
@@ -90,7 +90,7 @@ function App() {
       {/* Footer */}
       <footer className={`border-t py-6 ${isDark ? "bg-slate-900/50 border-slate-700/50 text-gray-400" : "bg-white/50 border-sky-200/50 text-gray-500"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm">JWT Toolkit &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</div>
+          <div className="text-center text-sm">JWTBench &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</div>
         </div>
       </footer>
     </div>
