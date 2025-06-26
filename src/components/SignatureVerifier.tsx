@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { jwtVerify, importSPKI, importPKCS8 } from "jose"
+import { useState } from "react"
+import { jwtVerify, importSPKI } from "jose"
 
 const ALGORITHMS = [
   { label: "HS256 (HMAC SHA-256)", value: "HS256" },
