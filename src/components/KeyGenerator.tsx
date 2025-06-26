@@ -1,47 +1,47 @@
-import React, { useState } from "react";
+import { useState } from "react"
 
 const SYMMETRIC_FORMATS = [
   { label: "Base64", value: "base64" },
   { label: "Hex", value: "hex" },
-];
-const RSA_BITS = [2048, 4096];
+]
+const RSA_BITS = [2048, 4096]
 const EC_CURVES = [
   { label: "P-256", value: "P-256" },
   { label: "P-384", value: "P-384" },
-];
+]
 
 function randomBytes(len: number) {
-  const arr = new Uint8Array(len);
-  crypto.getRandomValues(arr);
-  return arr;
+  const arr = new Uint8Array(len)
+  crypto.getRandomValues(arr)
+  return arr
 }
 function toHex(arr: Uint8Array) {
   return Array.from(arr)
     .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .join("")
 }
 function toBase64(arr: Uint8Array) {
-  return btoa(String.fromCharCode(...arr));
+  return btoa(String.fromCharCode(...arr))
 }
 
-const KeyGenerator = () => {
-  const [symFormat, setSymFormat] = useState("base64");
-  const [symLen, setSymLen] = useState(32);
-  const [symKey, setSymKey] = useState("");
-  const [rsaBits, setRsaBits] = useState(2048);
-  const [rsaKeys, setRsaKeys] = useState<
-    { publicKey: string; privateKey: string } | null
-  >(null);
-  const [ecCurve, setEcCurve] = useState("P-256");
-  const [ecKeys, setEcKeys] = useState<
-    { publicKey: string; privateKey: string } | null
-  >(null);
+interface KeyGeneratorProps {
+  isDark?: boolean
+}
+
+const KeyGenerator = ({ isDark = true }: KeyGeneratorProps) => {
+  const [symFormat, setSymFormat] = useState("base64")
+  const [symLen, setSymLen] = useState(32)
+  const [symKey, setSymKey] = useState("")
+  const [rsaBits, setRsaBits] = useState(2048)
+  const [rsaKeys, setRsaKeys] = useState<{ publicKey: string; privateKey: string } | null>(null)
+  const [ecCurve, setEcCurve] = useState("P-256")
+  const [ecKeys, setEcKeys] = useState<{ publicKey: string; privateKey: string } | null>(null)
 
   // Symmetric key generation
   const handleGenSym = () => {
-    const bytes = randomBytes(symLen);
-    setSymKey(symFormat === "hex" ? toHex(bytes) : toBase64(bytes));
-  };
+    const bytes = randomBytes(symLen)
+    setSymKey(symFormat === "hex" ? toHex(bytes) : toBase64(bytes))
+  }
 
   // RSA key generation
   const handleGenRsa = async () => {
@@ -54,190 +54,278 @@ const KeyGenerator = () => {
       },
       true,
       ["sign", "verify"]
-    );
-    const pub = await window.crypto.subtle.exportKey("spki", pair.publicKey);
-    const priv = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey);
+    )
+    const pub = await window.crypto.subtle.exportKey("spki", pair.publicKey)
+    const priv = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey)
     setRsaKeys({
-      publicKey: `-----BEGIN PUBLIC KEY-----\n${btoa(
-        String.fromCharCode(...new Uint8Array(pub))
-      )
+      publicKey: `-----BEGIN PUBLIC KEY-----\n${btoa(String.fromCharCode(...new Uint8Array(pub)))
         .replace(/(.{64})/g, "$1\n")
         .trim()}\n-----END PUBLIC KEY-----`,
-      privateKey: `-----BEGIN PRIVATE KEY-----\n${btoa(
-        String.fromCharCode(...new Uint8Array(priv))
-      )
+      privateKey: `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...new Uint8Array(priv)))
         .replace(/(.{64})/g, "$1\n")
         .trim()}\n-----END PRIVATE KEY-----`,
-    });
-  };
+    })
+  }
 
   // EC key generation
   const handleGenEc = async () => {
-    const pair = await window.crypto.subtle.generateKey(
-      { name: "ECDSA", namedCurve: ecCurve },
-      true,
-      ["sign", "verify"]
-    );
-    const pub = await window.crypto.subtle.exportKey("spki", pair.publicKey);
-    const priv = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey);
+    const pair = await window.crypto.subtle.generateKey({ name: "ECDSA", namedCurve: ecCurve }, true, ["sign", "verify"])
+    const pub = await window.crypto.subtle.exportKey("spki", pair.publicKey)
+    const priv = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey)
     setEcKeys({
-      publicKey: `-----BEGIN PUBLIC KEY-----\n${btoa(
-        String.fromCharCode(...new Uint8Array(pub))
-      )
+      publicKey: `-----BEGIN PUBLIC KEY-----\n${btoa(String.fromCharCode(...new Uint8Array(pub)))
         .replace(/(.{64})/g, "$1\n")
         .trim()}\n-----END PUBLIC KEY-----`,
-      privateKey: `-----BEGIN PRIVATE KEY-----\n${btoa(
-        String.fromCharCode(...new Uint8Array(priv))
-      )
+      privateKey: `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...new Uint8Array(priv)))
         .replace(/(.{64})/g, "$1\n")
         .trim()}\n-----END PRIVATE KEY-----`,
-    });
-  };
+    })
+  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="font-semibold mb-2">Symmetric (HMAC) Secret</div>
-        <div className="flex gap-2 items-center mb-2">
-          <label>Length:</label>
-          <input
-            type="number"
-            min={8}
-            max={128}
-            value={symLen}
-            onChange={(e) => setSymLen(Number(e.target.value))}
-            className="w-16 p-1 border rounded"
-          />
-          <label>Format:</label>
-          <select
-            value={symFormat}
-            onChange={(e) => setSymFormat(e.target.value)}
-            className="p-1 border rounded"
-          >
-            {SYMMETRIC_FORMATS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <button
-            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={handleGenSym}
-          >
-            Generate
-          </button>
-        </div>
-        {symKey && (
-          <div className="mt-2">
-            <div className="font-medium">Secret:</div>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {symKey}
-            </pre>
+    <div className="w-full">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        {/* Symmetric Key Section */}
+        <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+            <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Symmetric (HMAC) Secret</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="space-y-3">
+              <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Length (bytes)</label>
+              <input
+                type="number"
+                min={8}
+                max={128}
+                value={symLen}
+                onChange={(e) => setSymLen(Number(e.target.value))}
+                className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"}`}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Format</label>
+              <select
+                value={symFormat}
+                onChange={(e) => setSymFormat(e.target.value)}
+                className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"}`}
+              >
+                {SYMMETRIC_FORMATS.map((f) => (
+                  <option key={f.value} value={f.value} className={isDark ? "bg-slate-800 text-white" : "bg-white text-gray-900"}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
-              className="mt-1 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => navigator.clipboard.writeText(symKey)}
+              className="px-6 py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 
+                       text-white font-semibold text-sm tracking-wide
+                       hover:from-sky-600 hover:to-sky-700 
+                       transition-all duration-300 transform hover:scale-105 
+                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+              onClick={handleGenSym}
             >
-              Copy
+              Generate Secret
             </button>
           </div>
-        )}
-      </div>
-      <div>
-        <div className="font-semibold mb-2">Asymmetric (RSA) Keypair</div>
-        <div className="flex gap-2 items-center mb-2">
-          <label>Bits:</label>
-          <select
-            value={rsaBits}
-            onChange={(e) => setRsaBits(Number(e.target.value))}
-            className="p-1 border rounded"
-          >
-            {RSA_BITS.map((bits) => (
-              <option key={bits} value={bits}>
-                {bits}
-              </option>
-            ))}
-          </select>
-          <button
-            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={handleGenRsa}
-          >
-            Generate
-          </button>
+
+          {symKey && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Generated Secret</h4>
+                <button
+                  className={`px-4 py-2 rounded-xl text-sm font-medium
+                           transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ${
+                             isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-sky-200/50 text-gray-900 hover:bg-sky-50 shadow-sm"
+                           }`}
+                  onClick={() => navigator.clipboard.writeText(symKey)}
+                >
+                  Copy Secret
+                </button>
+              </div>
+              <pre
+                className={`rounded-2xl p-4 text-xs sm:text-sm 
+                             overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed break-all ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-sky-200" : "bg-sky-50/50 border border-sky-200/50 text-sky-800 shadow-inner"}`}
+              >
+                {symKey}
+              </pre>
+            </div>
+          )}
         </div>
-        {rsaKeys && (
-          <div className="mt-2">
-            <div className="font-medium">Public Key:</div>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {rsaKeys.publicKey}
-            </pre>
+
+        {/* RSA Key Section */}
+        <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+            <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>RSA Keypair</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div className="space-y-3">
+              <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Key Size (bits)</label>
+              <select
+                value={rsaBits}
+                onChange={(e) => setRsaBits(Number(e.target.value))}
+                className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"}`}
+              >
+                {RSA_BITS.map((bits) => (
+                  <option key={bits} value={bits} className={isDark ? "bg-slate-800 text-white" : "bg-white text-gray-900"}>
+                    {bits}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
-              className="mt-1 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => navigator.clipboard.writeText(rsaKeys.publicKey)}
+              className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 
+                       text-white font-semibold text-sm tracking-wide
+                       hover:from-emerald-600 hover:to-emerald-700 
+                       transition-all duration-300 transform hover:scale-105 
+                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              onClick={handleGenRsa}
             >
-              Copy
-            </button>
-            <div className="font-medium mt-2">Private Key:</div>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {rsaKeys.privateKey}
-            </pre>
-            <button
-              className="mt-1 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => navigator.clipboard.writeText(rsaKeys.privateKey)}
-            >
-              Copy
+              Generate RSA Keys
             </button>
           </div>
-        )}
-      </div>
-      <div>
-        <div className="font-semibold mb-2">Asymmetric (EC) Keypair</div>
-        <div className="flex gap-2 items-center mb-2">
-          <label>Curve:</label>
-          <select
-            value={ecCurve}
-            onChange={(e) => setEcCurve(e.target.value)}
-            className="p-1 border rounded"
-          >
-            {EC_CURVES.map((curve) => (
-              <option key={curve.value} value={curve.value}>
-                {curve.label}
-              </option>
-            ))}
-          </select>
-          <button
-            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={handleGenEc}
-          >
-            Generate
-          </button>
+
+          {rsaKeys && (
+            <div className="space-y-6">
+              {/* Public Key */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Public Key</h4>
+                  <button
+                    className={`px-4 py-2 rounded-xl text-sm font-medium
+                             transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                               isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-emerald-200/50 text-gray-900 hover:bg-emerald-50 shadow-sm"
+                             }`}
+                    onClick={() => navigator.clipboard.writeText(rsaKeys.publicKey)}
+                  >
+                    Copy Public
+                  </button>
+                </div>
+                <pre
+                  className={`rounded-2xl p-4 text-xs sm:text-sm 
+                               overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-emerald-200" : "bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 shadow-inner"}`}
+                >
+                  {rsaKeys.publicKey}
+                </pre>
+              </div>
+
+              {/* Private Key */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Private Key</h4>
+                  <button
+                    className={`px-4 py-2 rounded-xl text-sm font-medium
+                             transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                               isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-emerald-200/50 text-gray-900 hover:bg-emerald-50 shadow-sm"
+                             }`}
+                    onClick={() => navigator.clipboard.writeText(rsaKeys.privateKey)}
+                  >
+                    Copy Private
+                  </button>
+                </div>
+                <pre
+                  className={`rounded-2xl p-4 text-xs sm:text-sm 
+                               overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-emerald-200" : "bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 shadow-inner"}`}
+                >
+                  {rsaKeys.privateKey}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
-        {ecKeys && (
-          <div className="mt-2">
-            <div className="font-medium">Public Key:</div>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {ecKeys.publicKey}
-            </pre>
+
+        {/* EC Key Section */}
+        <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+            <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Elliptic Curve Keypair</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div className="space-y-3">
+              <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Curve</label>
+              <select
+                value={ecCurve}
+                onChange={(e) => setEcCurve(e.target.value)}
+                className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"}`}
+              >
+                {EC_CURVES.map((curve) => (
+                  <option key={curve.value} value={curve.value} className={isDark ? "bg-slate-800 text-white" : "bg-white text-gray-900"}>
+                    {curve.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
-              className="mt-1 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => navigator.clipboard.writeText(ecKeys.publicKey)}
+              className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 
+                       text-white font-semibold text-sm tracking-wide
+                       hover:from-purple-600 hover:to-purple-700 
+                       transition-all duration-300 transform hover:scale-105 
+                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              onClick={handleGenEc}
             >
-              Copy
-            </button>
-            <div className="font-medium mt-2">Private Key:</div>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {ecKeys.privateKey}
-            </pre>
-            <button
-              className="mt-1 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => navigator.clipboard.writeText(ecKeys.privateKey)}
-            >
-              Copy
+              Generate EC Keys
             </button>
           </div>
-        )}
+
+          {ecKeys && (
+            <div className="space-y-6">
+              {/* Public Key */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Public Key</h4>
+                  <button
+                    className={`px-4 py-2 rounded-xl text-sm font-medium
+                             transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                               isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-purple-200/50 text-gray-900 hover:bg-purple-50 shadow-sm"
+                             }`}
+                    onClick={() => navigator.clipboard.writeText(ecKeys.publicKey)}
+                  >
+                    Copy Public
+                  </button>
+                </div>
+                <pre
+                  className={`rounded-2xl p-4 text-xs sm:text-sm 
+                               overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-purple-200" : "bg-purple-50/50 border border-purple-200/50 text-purple-800 shadow-inner"}`}
+                >
+                  {ecKeys.publicKey}
+                </pre>
+              </div>
+
+              {/* Private Key */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Private Key</h4>
+                  <button
+                    className={`px-4 py-2 rounded-xl text-sm font-medium
+                             transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                               isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-purple-200/50 text-gray-900 hover:bg-purple-50 shadow-sm"
+                             }`}
+                    onClick={() => navigator.clipboard.writeText(ecKeys.privateKey)}
+                  >
+                    Copy Private
+                  </button>
+                </div>
+                <pre
+                  className={`rounded-2xl p-4 text-xs sm:text-sm 
+                               overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-purple-200" : "bg-purple-50/50 border border-purple-200/50 text-purple-800 shadow-inner"}`}
+                >
+                  {ecKeys.privateKey}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default KeyGenerator;
+export default KeyGenerator
