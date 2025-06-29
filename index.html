@@ -1,13 +1,133 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+
+  <!-- Primary Meta Tags -->
+  <title>JWTBench - Free JWT Decoder, Encoder & Developer Tool | JSON Web Tokens Online</title>
+  <meta name="title" content="JWTBench - Free JWT Decoder, Encoder & Developer Tool | JSON Web Tokens Online" />
+  <meta name="description"
+    content="Free online JWT decoder, encoder, and verification tool. Decode, create, and verify JSON Web Tokens with HMAC & RSA signatures. Security strength checker, key generator, and lifetime visualizer included." />
+  <meta name="keywords"
+    content="JWT, JSON Web Token, JWT decoder, JWT encoder, JWT verifier, JWT debugger, JWT parser, JWT validator, HMAC, HS256, HS384, HS512, RSA, RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, JWT security, JWT strength checker, JWT key generator, authentication, authorization, token validation, JSON Web Signature, JWS, JSON Web Encryption, JWE, RFC 7519, JOSE, claims, payload, header, signature verification, bearer token, access token, ID token, refresh token" />
+  <meta name="author" content="JWTBench" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="rating" content="general" />
+  <meta name="distribution" content="global" />
+  <meta name="copyright" content="JWTBench" />
+  <link rel="author" href="/humans.txt" />
+
+  <!-- Viewport and Mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="JWTBench" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jwt.andiindia.in/" />
+  <meta property="og:title" content="JWTBench - Free JWT Decoder, Encoder & Developer Tool" />
+  <meta property="og:description"
+    content="Professional JWT toolkit for developers. Decode, encode, verify JSON Web Tokens with support for HMAC & RSA. Includes security analysis, key generation, and token lifetime visualization." />
+  <meta property="og:image" content="https://jwt.andiindia.in/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="JWTBench" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://jwt.andiindia.in/" />
+  <meta property="twitter:title" content="JWTBench - Free JWT Decoder & Developer Tool" />
+  <meta property="twitter:description"
+    content="Professional JWT toolkit: decode, encode, verify JSON Web Tokens. Security analysis, key generation, lifetime visualization. Free & secure." />
+  <meta property="twitter:image" content="https://jwt.andiindia.in/twitter-image.png" />
+  <meta property="twitter:creator" content="@thisisdkyadav" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://jwt.andiindia.in/" />
+
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- DNS Prefetch and Preconnect -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "JWTBench",
+      "url": "https://jwt.andiindia.in",
+      "description": "Professional JWT toolkit for developers. Decode, encode, verify JSON Web Tokens with support for HMAC & RSA signatures. Includes security analysis, key generation, and token lifetime visualization.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "JWTBench",
+        "url": "https://jwt.andiindia.in"
+      },
+      "featureList": [
+        "JWT Token Decoder",
+        "JWT Token Encoder", 
+        "JWT Signature Verification",
+        "Secret Strength Analysis",
+        "Cryptographic Key Generator",
+        "Token Lifetime Visualization",
+        "HMAC & RSA Support",
+        "Client-side Security"
+      ],
+      "browserRequirements": "Requires JavaScript. Works with Chrome, Firefox, Safari, Edge.",
+      "screenshot": "https://jwt.andiindia.in/screenshot.png"
+    }
+    </script>
+
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+  <!-- Performance -->
+  <link rel="preload" href="/src/main.tsx" as="script" />
+</head>
+
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content"
+    class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">Skip
+    to main content</a>
+
+  <!-- Main Application -->
+  <div id="root"></div>
+
+  <!-- Fallback for disabled JavaScript -->
+  <noscript>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+      <h1>JWTBench - JWT Developer Tool</h1>
+      <p>This application requires JavaScript to function properly.</p>
+      <p>Please enable JavaScript in your browser to use JWTBench.</p>
+      <p>JWTBench is a free, secure, client-side JWT decoder, encoder, and verification tool.</p>
+    </div>
+  </noscript>
+
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -56,12 +56,12 @@ function App() {
       <Toaster position="top-right" theme={isDark ? "dark" : "light"} richColors />
 
       {/* Fixed Navigation Bar */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-all duration-300 ${isDark ? "bg-slate-900/80 border-slate-700/50" : "bg-white/80 border-sky-200/50"}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-all duration-300 ${isDark ? "bg-slate-900/80 border-slate-700/50" : "bg-white/80 border-sky-200/50"}`} role="navigation" aria-label="Main navigation">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo/Brand */}
-            <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-sky-500" : "bg-sky-600"}`}>
+            <div className="flex items-center space-x-3" role="banner">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-sky-500" : "bg-sky-600"}`} aria-hidden="true">
                 <span className="text-white font-bold text-lg">J</span>
               </div>
               <div>
@@ -72,14 +72,20 @@ function App() {
 
             {/* Mobile menu button */}
             <div className="sm:hidden">
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}>
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
                 {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
 
             {/* Desktop Navigation Links */}
             <div className="hidden sm:flex items-center space-x-2 lg:space-x-4">
-              <div className="flex items-center space-x-1 lg:space-x-2">
+              <div className="flex items-center space-x-1 lg:space-x-2" role="tablist" aria-label="JWT Tools">
                 {TABS.map((t, i) => (
                   <button
                     key={t.label}
@@ -89,6 +95,11 @@ function App() {
                       ${tab === i ? `${isDark ? "bg-sky-500 text-white" : "bg-sky-600 text-white"} shadow-lg` : `${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
                     `}
                     onClick={() => setTab(i)}
+                    role="tab"
+                    aria-selected={tab === i}
+                    aria-controls={`panel-${i}`}
+                    id={`tab-${i}`}
+                    tabIndex={tab === i ? 0 : -1}
                   >
                     {t.icon}
                     <span className="hidden lg:inline">{t.label}</span>
@@ -97,7 +108,12 @@ function App() {
               </div>
 
               {/* Theme Toggle */}
-              <button onClick={toggleTheme} className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}>
+              <button 
+                onClick={toggleTheme} 
+                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              >
                 {isDark ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             </div>
@@ -106,10 +122,14 @@ function App() {
       </nav>
 
       {/* Mobile Navigation Menu */}
-      <div className={`fixed inset-0 z-40 transition-all duration-300 sm:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+      <div 
+        className={`fixed inset-0 z-40 transition-all duration-300 sm:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        id="mobile-menu"
+        aria-hidden={!mobileMenuOpen}
+      >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
         <div className={`absolute top-16 right-0 w-64 p-4 rounded-bl-2xl shadow-xl transition-all duration-300 transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"} ${isDark ? "bg-slate-800 border-l border-b border-slate-700/50" : "bg-white border-l border-b border-sky-200/50"}`}>
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2" role="menu" aria-label="Mobile navigation menu">
             {TABS.map((t, i) => (
               <button
                 key={t.label}
@@ -119,6 +139,8 @@ function App() {
                   ${tab === i ? `${isDark ? "bg-sky-500 text-white" : "bg-sky-600 text-white"} shadow-lg` : `${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
                 `}
                 onClick={() => setTab(i)}
+                role="menuitem"
+                aria-current={tab === i ? "page" : undefined}
               >
                 {t.icon}
                 {t.label}
@@ -126,7 +148,12 @@ function App() {
             ))}
 
             {/* Theme Toggle in mobile menu */}
-            <button onClick={toggleTheme} className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 ${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}>
+            <button 
+              onClick={toggleTheme} 
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 ${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
+              role="menuitem"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
               {isDark ? "Light Mode" : "Dark Mode"}
             </button>
@@ -135,16 +162,30 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 pt-16 sm:pt-20">
+      <main className="flex-1 pt-16 sm:pt-20" id="main-content" role="main">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <div className={`transition-all duration-300 ${isDark ? "text-white" : "text-gray-900"}`}>{TABS[tab].component}</div>
+          <div 
+            className={`transition-all duration-300 ${isDark ? "text-white" : "text-gray-900"}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${tab}`}
+            id={`panel-${tab}`}
+            tabIndex={0}
+          >
+            {TABS[tab].component}
+          </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className={`border-t py-6 ${isDark ? "bg-slate-900/50 border-slate-700/50 text-gray-400" : "bg-white/50 border-sky-200/50 text-gray-500"}`}>
+      <footer className={`border-t py-6 ${isDark ? "bg-slate-900/50 border-slate-700/50 text-gray-400" : "bg-white/50 border-sky-200/50 text-gray-500"}`} role="contentinfo">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm">JWTBench &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</div>
+          <div className="text-center text-sm">
+            <p>JWTBench &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</p>
+            <p className="mt-2 text-xs">
+              Professional JWT decoder, encoder, and verification tool for developers. 
+              All processing happens in your browser for maximum security.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

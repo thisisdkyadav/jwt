@@ -1,0 +1,19 @@
+/* TEAM */
+Developer: Devesh Yadav
+Contact: thisisdkyadav [at] gmail.com
+Twitter: @thisisdkyadav
+From: Worldwide
+
+/* THANKS */
+JSON Web Token (RFC 7519): https://tools.ietf.org/html/rfc7519
+JOSE Working Group: https://datatracker.ietf.org/wg/jose/about/
+React Team: https://reactjs.org/
+Vite Team: https://vitejs.dev/
+TailwindCSS Team: https://tailwindcss.com/
+
+/* SITE */
+Last update: 2024/01/20
+Standards: HTML5, CSS3, ES2022, TypeScript
+Components: React, Vite, TailwindCSS, jose
+Software: VS Code, Node.js
+Security: Client-side processing, no data transmission
