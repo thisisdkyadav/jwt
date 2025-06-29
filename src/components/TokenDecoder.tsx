@@ -1,7 +1,15 @@
-import { useState, useMemo } from "react"
-import { base64url } from "jose"
+import { useState, useMemo, useEffect } from "react"
+import { base64url, jwtVerify, importSPKI, decodeJwt } from "jose"
 import { toast } from "sonner"
-import { Copy, Trash2 } from "lucide-react"
+import { Copy, Trash2, CheckCircle, XCircle, AlertCircle, Clock, Shield } from "lucide-react"
+
+const ALGORITHMS = [
+  { label: "HS256 (HMAC SHA-256)", value: "HS256" },
+  { label: "HS384 (HMAC SHA-384)", value: "HS384" },
+  { label: "HS512 (HMAC SHA-512)", value: "HS512" },
+  { label: "RS256 (RSA SHA-256)", value: "RS256" },
+  { label: "ES256 (ECDSA P-256 SHA-256)", value: "ES256" },
+]
 
 function parseJwtPart(part: string) {
   try {
@@ -22,12 +30,56 @@ function formatTimestamp(ts?: number) {
   }
 }
 
+async function verifyJwt({ jwt, key, alg }: { jwt: string; key: string; alg: string }) {
+  try {
+    let cryptoKey: CryptoKey | Uint8Array
+    if (alg.startsWith("HS")) {
+      cryptoKey = new TextEncoder().encode(key)
+    } else if (alg.startsWith("RS") || alg.startsWith("ES")) {
+      cryptoKey = await importSPKI(key, alg)
+    } else {
+      throw new Error("Unsupported algorithm")
+    }
+    await jwtVerify(jwt, cryptoKey, { algorithms: [alg] })
+    return { valid: true, reason: "Signature valid" }
+  } catch (e) {
+    let msg = "Unknown error"
+    if (typeof e === "string") msg = e
+    else if (e instanceof Error) msg = e.message
+    return { valid: false, reason: msg }
+  }
+}
+
+function checkTokenExpiration(jwt: string) {
+  try {
+    const decoded = decodeJwt(jwt)
+    const now = Math.floor(Date.now() / 1000)
+
+    if (decoded.exp && decoded.exp < now) {
+      return { status: "expired", message: "Token has expired" }
+    }
+
+    if (decoded.nbf && decoded.nbf > now) {
+      return { status: "notyet", message: "Token not yet valid" }
+    }
+
+    return { status: "valid", message: "Token is within validity period" }
+  } catch (e) {
+    return { status: "invalid", message: "Could not decode token" }
+  }
+}
+
 interface TokenDecoderProps {
   isDark?: boolean
 }
 
 const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
   const [jwt, setJwt] = useState("")
+  const [key, setKey] = useState("")
+  const [alg, setAlg] = useState("HS256")
+  const [verificationResult, setVerificationResult] = useState<{ valid: boolean; reason: string } | null>(null)
+  const [expirationStatus, setExpirationStatus] = useState<{ status: string; message: string } | null>(null)
+  const [verificationError, setVerificationError] = useState("")
 
   const { header, payload, signature, error } = useMemo(() => {
     if (!jwt) return { header: null, payload: null, signature: "", error: "" }
@@ -46,6 +98,38 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
     return { header, payload, signature, error: "" }
   }, [jwt])
 
+  useEffect(() => {
+    if (jwt) {
+      setExpirationStatus(checkTokenExpiration(jwt))
+    } else {
+      setExpirationStatus(null)
+    }
+  }, [jwt])
+
+  const handleVerify = async () => {
+    setVerificationError("")
+    setVerificationResult(null)
+
+    if (!jwt || !key) {
+      setVerificationError("JWT and key are required")
+      return
+    }
+
+    try {
+      const result = await verifyJwt({ jwt, key, alg })
+      setVerificationResult(result)
+
+      if (result.valid) {
+        toast.success("Signature verified successfully")
+      } else {
+        toast.error("Signature verification failed")
+      }
+    } catch (e) {
+      toast.error("Verification process failed")
+      setVerificationError("An unexpected error occurred during verification")
+    }
+  }
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast.success(`${label} copied to clipboard`)
@@ -53,6 +137,9 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
 
   const clearAll = () => {
     setJwt("")
+    setKey("")
+    setVerificationResult(null)
+    setVerificationError("")
     toast.info("All fields cleared")
   }
 
@@ -62,130 +149,259 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl space-y-6 sm:space-y-8">
-        {/* Input Section */}
-        <div className={`rounded-3xl p-6 sm:p-8 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-          <div className="flex justify-between items-center mb-4">
-            <label className={`block text-lg sm:text-xl font-semibold tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Paste your JWT token</label>
-            <button onClick={clearAll} className={`p-2 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}>
-              <Trash2 size={16} />
-              <span className="hidden sm:inline">Clear</span>
-            </button>
+    <div className="w-full h-full">
+      <div className="w-full space-y-6">
+        {/* Main Layout - Side by side on wide screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 min-h-0">
+          {/* Left Panel - Input & Verification */}
+          <div className="space-y-6">
+            {/* JWT Input Section */}
+            <div className={`rounded-3xl p-6 sm:p-8 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+                  <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>JWT Token</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  {expirationStatus && (
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1
+                      ${
+                        expirationStatus.status === "valid"
+                          ? isDark
+                            ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                            : "bg-green-100 text-green-700 border border-green-200"
+                          : expirationStatus.status === "expired"
+                          ? isDark
+                            ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                            : "bg-red-100 text-red-700 border border-red-200"
+                          : isDark
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : "bg-amber-100 text-amber-700 border border-amber-200"
+                      }`}
+                    >
+                      {expirationStatus.status === "valid" && <CheckCircle size={12} />}
+                      {expirationStatus.status === "expired" && <XCircle size={12} />}
+                      {expirationStatus.status === "notyet" && <Clock size={12} />}
+                      {expirationStatus.status === "invalid" && <AlertCircle size={12} />}
+                      <span>{expirationStatus.status === "valid" ? "Valid" : expirationStatus.status === "expired" ? "Expired" : expirationStatus.status === "notyet" ? "Not Yet Valid" : "Invalid"}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => copyToClipboard(jwt, "JWT")}
+                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                    aria-label="Copy JWT to clipboard"
+                    disabled={!jwt}
+                  >
+                    <Copy size={16} />
+                  </button>
+                  <button onClick={clearAll} className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`} aria-label="Clear all fields">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <textarea
+                className={`w-full p-4 sm:p-5 rounded-2xl font-mono text-sm sm:text-base 
+                         focus:outline-none transition-all duration-300 resize-none
+                         min-h-[120px] sm:min-h-[140px] focus-ring ${
+                           isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"
+                         }`}
+                value={jwt}
+                onChange={(e) => setJwt(e.target.value.trim())}
+                onPaste={handlePaste}
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+              />
+              {error && <div className={`mt-4 p-4 rounded-2xl border font-medium ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
+            </div>
+
+            {/* Verification Section */}
+            {jwt && !error && (
+              <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                  <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature Verification</h3>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Secret/Key Input */}
+                  <div className="space-y-3">
+                    <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Secret / Public Key</label>
+                    <input
+                      className={`w-full p-4 rounded-2xl font-mono text-sm 
+                               focus:outline-none transition-all duration-300 focus-ring ${
+                                 isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"
+                               }`}
+                      type="text"
+                      value={key}
+                      onChange={(e) => setKey(e.target.value)}
+                      placeholder="Enter secret or public key"
+                    />
+                  </div>
+
+                  {/* Algorithm Selection */}
+                  <div className="space-y-3">
+                    <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Algorithm</label>
+                    <select
+                      className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${
+                        isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"
+                      }`}
+                      value={alg}
+                      onChange={(e) => setAlg(e.target.value)}
+                    >
+                      {ALGORITHMS.map((a) => (
+                        <option key={a.value} value={a.value} className={isDark ? "bg-slate-800 text-white" : "bg-white text-gray-900"}>
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Verify Button */}
+                <div className="flex justify-center pt-4">
+                  <button
+                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 
+                             text-white font-semibold text-sm tracking-wide
+                             hover:from-emerald-600 hover:to-emerald-700 
+                             transition-all duration-300 transform hover:scale-105 
+                             shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+                             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+                    onClick={handleVerify}
+                    disabled={!jwt || !key}
+                  >
+                    <Shield size={16} />
+                    Verify Signature
+                  </button>
+                </div>
+
+                {/* Verification Results */}
+                {verificationError && (
+                  <div className={`rounded-2xl p-4 border transition-all duration-300 ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
+                    <div className="flex items-center gap-3">
+                      <XCircle size={18} />
+                      <span className="font-medium">{verificationError}</span>
+                    </div>
+                  </div>
+                )}
+
+                {verificationResult && (
+                  <div
+                    className={`rounded-2xl p-4 border transition-all duration-300 ${
+                      verificationResult.valid ? (isDark ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" : "bg-emerald-50 border-emerald-200 text-emerald-700") : isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {verificationResult.valid ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                      <span className="font-medium">{verificationResult.valid ? "Signature Valid" : `Invalid: ${verificationResult.reason}`}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <textarea
-            className={`w-full p-4 sm:p-5 rounded-2xl font-mono text-sm sm:text-base 
-                     focus:outline-none transition-all duration-300 resize-none
-                     min-h-[100px] sm:min-h-[120px] ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"}`}
-            value={jwt}
-            onChange={(e) => setJwt(e.target.value.trim())}
-            onPaste={handlePaste}
-            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-          />
-          {error && <div className={`mt-4 p-4 rounded-2xl border font-medium ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
+
+          {/* Right Panel - Decoded Results */}
+          {(header || payload || signature) && (
+            <div className="space-y-6">
+              {/* Header */}
+              {header && (
+                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(JSON.stringify(header, null, 2), "Header")}
+                      className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                      aria-label="Copy header to clipboard"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                  <pre
+                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
+                                 whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-sky-200" : "bg-sky-50/50 border border-sky-200/50 text-sky-800 shadow-inner"}`}
+                  >
+                    {JSON.stringify(header, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Payload */}
+              {payload && (
+                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(JSON.stringify(payload, null, 2), "Payload")}
+                      className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                      aria-label="Copy payload to clipboard"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                  <pre
+                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
+                                 whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-emerald-200" : "bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 shadow-inner"}`}
+                  >
+                    {JSON.stringify(payload, null, 2)}
+                  </pre>
+
+                  {/* Timestamps */}
+                  <div className="grid grid-cols-1 gap-2 mt-4 text-xs sm:text-sm">
+                    {payload.exp && (
+                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                        <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Expires:</span>
+                        <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.exp)}</span>
+                      </div>
+                    )}
+                    {payload.iat && (
+                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                        <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Issued:</span>
+                        <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.iat)}</span>
+                      </div>
+                    )}
+                    {payload.nbf && (
+                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                        <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Not Before:</span>
+                        <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.nbf)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Signature */}
+              {signature && (
+                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature</h3>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(signature, "Signature")}
+                      className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                      aria-label="Copy signature to clipboard"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                  <pre
+                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
+                                 whitespace-pre-wrap font-mono leading-relaxed break-all ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-purple-200" : "bg-purple-50/50 border border-purple-200/50 text-purple-800 shadow-inner"}`}
+                  >
+                    {signature}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-        {/* Results Section */}
-        {(header || payload || signature) && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Header */}
-            {header && (
-              <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
-                    <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(JSON.stringify(header, null, 2), "Header")}
-                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
-                    aria-label="Copy header to clipboard"
-                  >
-                    <Copy size={16} />
-                  </button>
-                </div>
-                <pre
-                  className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
-                               whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-sky-200" : "bg-sky-50/50 border border-sky-200/50 text-sky-800 shadow-inner"}`}
-                >
-                  {JSON.stringify(header, null, 2)}
-                </pre>
-              </div>
-            )}
-
-            {/* Payload */}
-            {payload && (
-              <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                    <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(JSON.stringify(payload, null, 2), "Payload")}
-                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
-                    aria-label="Copy payload to clipboard"
-                  >
-                    <Copy size={16} />
-                  </button>
-                </div>
-                <pre
-                  className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
-                               whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-emerald-200" : "bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 shadow-inner"}`}
-                >
-                  {JSON.stringify(payload, null, 2)}
-                </pre>
-
-                {/* Timestamps */}
-                <div className="grid grid-cols-1 gap-2 mt-4 text-xs sm:text-sm">
-                  {payload.exp && (
-                    <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
-                      <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Expires:</span>
-                      <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.exp)}</span>
-                    </div>
-                  )}
-                  {payload.iat && (
-                    <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
-                      <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Issued:</span>
-                      <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.iat)}</span>
-                    </div>
-                  )}
-                  {payload.nbf && (
-                    <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
-                      <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Not Before:</span>
-                      <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.nbf)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Signature */}
-            {signature && (
-              <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
-                    <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature</h3>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(signature, "Signature")}
-                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
-                    aria-label="Copy signature to clipboard"
-                  >
-                    <Copy size={16} />
-                  </button>
-                </div>
-                <pre
-                  className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
-                               whitespace-pre-wrap font-mono leading-relaxed break-all ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-purple-200" : "bg-purple-50/50 border border-purple-200/50 text-purple-800 shadow-inner"}`}
-                >
-                  {signature}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
