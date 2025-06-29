@@ -1,31 +1,81 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import TokenDecoder from "./components/TokenDecoder"
 import TokenEncoder from "./components/TokenEncoder"
 import SignatureVerifier from "./components/SignatureVerifier"
 import SecretStrengthChecker from "./components/SecretStrengthChecker"
 import KeyGenerator from "./components/KeyGenerator"
 import LifetimeVisualizer from "./components/LifetimeVisualizer"
+import { Toaster } from "sonner"
+import { 
+  KeyRound, 
+  FileJson, 
+  FileCheck, 
+  ShieldCheck, 
+  KeySquare, 
+  Clock, 
+  Menu, 
+  X, 
+  Sun, 
+  Moon 
+} from "lucide-react"
 import "./App.css"
 
 function App() {
   const [tab, setTab] = useState(0)
   const [isDark, setIsDark] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Close mobile menu when tab changes
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [tab])
 
   const toggleTheme = () => {
     setIsDark(!isDark)
   }
 
   const TABS = [
-    { label: "Decode", component: <TokenDecoder isDark={isDark} /> },
-    { label: "Encode", component: <TokenEncoder isDark={isDark} /> },
-    { label: "Verify", component: <SignatureVerifier isDark={isDark} /> },
-    { label: "Strength", component: <SecretStrengthChecker isDark={isDark} /> },
-    { label: "Keys", component: <KeyGenerator isDark={isDark} /> },
-    { label: "Visualize", component: <LifetimeVisualizer isDark={isDark} /> },
+    { 
+      label: "Decode", 
+      icon: <FileJson size={18} />, 
+      component: <TokenDecoder isDark={isDark} /> 
+    },
+    { 
+      label: "Encode", 
+      icon: <FileJson size={18} />, 
+      component: <TokenEncoder isDark={isDark} /> 
+    },
+    { 
+      label: "Verify", 
+      icon: <ShieldCheck size={18} />, 
+      component: <SignatureVerifier isDark={isDark} /> 
+    },
+    { 
+      label: "Strength", 
+      icon: <KeyRound size={18} />, 
+      component: <SecretStrengthChecker isDark={isDark} /> 
+    },
+    { 
+      label: "Keys", 
+      icon: <KeySquare size={18} />, 
+      component: <KeyGenerator isDark={isDark} /> 
+    },
+    { 
+      label: "Visualize", 
+      icon: <Clock size={18} />, 
+      component: <LifetimeVisualizer isDark={isDark} /> 
+    },
   ]
 
   return (
     <div className={`min-h-screen w-full flex flex-col transition-all duration-500 ${isDark ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800" : "bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50"}`}>  
+      {/* Toaster for notifications */}
+      <Toaster 
+        position="top-right" 
+        theme={isDark ? "dark" : "light"} 
+        richColors 
+      />
+      
       {/* Fixed Navigation Bar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-all duration-300 ${isDark ? "bg-slate-900/80 border-slate-700/50" : "bg-white/80 border-sky-200/50"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,19 +91,30 @@ function App() {
               </div>
             </div>
 
-            {/* Navigation Links */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Mobile menu button */}
+            <div className="sm:hidden">
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden sm:flex items-center space-x-2 sm:space-x-4">
               <div className="flex items-center space-x-1 sm:space-x-2">
                 {TABS.map((t, i) => (
                   <button
                     key={t.label}
                     className={`
                       px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium
-                      transition-all duration-200 ease-out
+                      transition-all duration-200 ease-out flex items-center gap-2
                       ${tab === i ? `${isDark ? "bg-sky-500 text-white" : "bg-sky-600 text-white"} shadow-lg` : `${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
                     `}
                     onClick={() => setTab(i)}
                   >
+                    {t.icon}
                     {t.label}
                   </button>
                 ))}
@@ -61,24 +122,44 @@ function App() {
 
               {/* Theme Toggle */}
               <button onClick={toggleTheme} className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}>
-                {isDark ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                )}
+                {isDark ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Mobile Navigation Menu */}
+      <div className={`fixed inset-0 z-40 transition-all duration-300 sm:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
+        <div className={`absolute top-16 right-0 w-64 p-4 rounded-bl-2xl shadow-xl transition-all duration-300 transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"} ${isDark ? "bg-slate-800 border-l border-b border-slate-700/50" : "bg-white border-l border-b border-sky-200/50"}`}>
+          <div className="flex flex-col space-y-2">
+            {TABS.map((t, i) => (
+              <button
+                key={t.label}
+                className={`
+                  px-4 py-3 rounded-xl text-sm font-medium
+                  transition-all duration-200 ease-out flex items-center gap-3
+                  ${tab === i ? `${isDark ? "bg-sky-500 text-white" : "bg-sky-600 text-white"} shadow-lg` : `${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
+                `}
+                onClick={() => setTab(i)}
+              >
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+            
+            {/* Theme Toggle in mobile menu */}
+            <button 
+              onClick={toggleTheme} 
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 ${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 pt-16 sm:pt-20">

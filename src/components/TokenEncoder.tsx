@@ -2,6 +2,8 @@ import { useState } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { json } from "@codemirror/lang-json"
 import { SignJWT, importPKCS8 } from "jose"
+import { toast } from "sonner"
+import { Copy, Trash2 } from "lucide-react"
 
 const ALGORITHMS = [
   { label: "HS256 (HMAC SHA-256)", value: "HS256" },
@@ -51,6 +53,15 @@ async function generateJwt({ header, payload, secret, alg }: GenerateJwtArgs): P
   }
 }
 
+function tryFormatJSON(jsonString: string): string {
+  try {
+    const parsed = JSON.parse(jsonString)
+    return JSON.stringify(parsed, null, 2)
+  } catch (e) {
+    return jsonString
+  }
+}
+
 interface TokenEncoderProps {
   isDark?: boolean
 }
@@ -66,13 +77,48 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
   const handleGenerate = async () => {
     setError("")
     setToken("")
-    const { jwt, error } = await generateJwt({ header, payload, secret, alg })
-    if (error) setError(error)
-    else setToken(jwt || "")
+    try {
+      const { jwt, error } = await generateJwt({ header, payload, secret, alg })
+      if (error) {
+        setError(error)
+        toast.error("Failed to generate token")
+      } else {
+        setToken(jwt || "")
+        toast.success("JWT token generated successfully")
+      }
+    } catch (e) {
+      toast.error("An error occurred during token generation")
+    }
   }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(token)
+    toast.success("Token copied to clipboard")
+  }
+
+  const clearAll = () => {
+    setHeader(defaultHeader)
+    setPayload(defaultPayload)
+    setSecret("")
+    setToken("")
+    setError("")
+    toast.info("All fields reset to default")
+  }
+
+  const handleHeaderChange = (value: string) => {
+    setHeader(value)
+  }
+
+  const handlePayloadChange = (value: string) => {
+    setPayload(value)
+  }
+
+  const handleHeaderPaste = (text: string) => {
+    setHeader(tryFormatJSON(text))
+  }
+
+  const handlePayloadPaste = (text: string) => {
+    setPayload(tryFormatJSON(text))
   }
 
   return (
@@ -82,32 +128,107 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Header */}
           <div className={`rounded-3xl p-6 sm:p-8 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
-              <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+                <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
+              </div>
+              <button
+                onClick={() => setHeader(defaultHeader)}
+                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                aria-label="Reset header to default"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
             <div className={`rounded-2xl overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-              <CodeMirror value={header} height="120px" extensions={[json()]} onChange={(v: string) => setHeader(v)} theme={isDark ? "dark" : "light"} className="text-sm font-mono" />
+              <CodeMirror
+                value={header}
+                height="120px"
+                extensions={[json()]}
+                onChange={handleHeaderChange}
+                theme={isDark ? "dark" : "light"}
+                className="text-sm font-mono"
+                basicSetup={{
+                  lineNumbers: false,
+                  foldGutter: false,
+                }}
+              />
             </div>
+            <button
+              onClick={() => {
+                try {
+                  setHeader(JSON.stringify(JSON.parse(header), null, 2))
+                } catch (e) {
+                  toast.error("Invalid JSON format")
+                }
+              }}
+              className={`text-xs font-medium px-3 py-1 rounded-lg ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+            >
+              Format JSON
+            </button>
           </div>
 
           {/* Payload */}
           <div className={`rounded-3xl p-6 sm:p-8 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-              <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
+              </div>
+              <button
+                onClick={() => setPayload(defaultPayload)}
+                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                aria-label="Reset payload to default"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
             <div className={`rounded-2xl overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-              <CodeMirror value={payload} height="140px" extensions={[json()]} onChange={(v: string) => setPayload(v)} theme={isDark ? "dark" : "light"} className="text-sm font-mono" />
+              <CodeMirror
+                value={payload}
+                height="140px"
+                extensions={[json()]}
+                onChange={handlePayloadChange}
+                theme={isDark ? "dark" : "light"}
+                className="text-sm font-mono"
+                basicSetup={{
+                  lineNumbers: false,
+                  foldGutter: false,
+                }}
+              />
             </div>
+            <button
+              onClick={() => {
+                try {
+                  setPayload(JSON.stringify(JSON.parse(payload), null, 2))
+                } catch (e) {
+                  toast.error("Invalid JSON format")
+                }
+              }}
+              className={`text-xs font-medium px-3 py-1 rounded-lg ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+            >
+              Format JSON
+            </button>
           </div>
         </div>
 
         {/* Configuration Section */}
         <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
-            <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Configuration</h3>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+              <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Configuration</h3>
+            </div>
+            <button
+              onClick={clearAll}
+              className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2
+                transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+              aria-label="Reset all fields"
+            >
+              <Trash2 size={16} />
+              <span>Reset All</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -150,8 +271,10 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                        text-white font-semibold text-lg tracking-wide
                        hover:from-sky-600 hover:to-sky-700 
                        transition-all duration-300 transform hover:scale-105 
-                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               onClick={handleGenerate}
+              disabled={!secret}
             >
               Generate JWT Token
             </button>
@@ -177,13 +300,13 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                 <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Generated JWT</h3>
               </div>
               <button
-                className={`px-4 py-2 rounded-xl text-sm font-medium
-                         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ${
-                           isDark ? "bg-slate-700/50 border border-slate-600/50 text-white hover:bg-slate-600/50" : "bg-white/50 border border-sky-200/50 text-gray-900 hover:bg-sky-50 shadow-sm"
-                         }`}
+                className={`p-2 rounded-xl transition-all duration-200 flex items-center gap-2
+                         ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                 onClick={copyToClipboard}
+                aria-label="Copy token to clipboard"
               >
-                Copy Token
+                <Copy size={16} />
+                <span className="hidden sm:inline text-sm font-medium">Copy</span>
               </button>
             </div>
             <pre
