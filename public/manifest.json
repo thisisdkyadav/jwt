@@ -24,25 +24,18 @@
       "purpose": "any"
     },
     {
-      "src": "/favicon-512x512.png", 
+      "src": "/favicon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/favicon-192x192.png",
-      "sizes": "192x192", 
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "features": [
-    "JWT Decoding",
-    "JWT Encoding", 
-    "Signature Verification",
-    "Security Analysis",
-    "Key Generation",
-    "Offline Support"
-  ],
+  "features": ["JWT Decoding", "JWT Encoding", "Signature Verification", "Security Analysis", "Key Generation", "Offline Support"],
   "prefer_related_applications": false
 }

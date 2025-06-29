@@ -130,11 +130,12 @@ body {
     box-shadow: none !important;
     text-shadow: none !important;
   }
-  
-  nav, footer {
+
+  nav,
+  footer {
     display: none !important;
   }
-  
+
   main {
     padding-top: 0 !important;
   }

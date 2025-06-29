@@ -72,8 +72,8 @@ function App() {
 
             {/* Mobile menu button */}
             <div className="sm:hidden">
-              <button 
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="mobile-menu"
@@ -108,8 +108,8 @@ function App() {
               </div>
 
               {/* Theme Toggle */}
-              <button 
-                onClick={toggleTheme} 
+              <button
+                onClick={toggleTheme}
                 className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                 aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
                 title={isDark ? "Switch to light mode" : "Switch to dark mode"}
@@ -122,11 +122,7 @@ function App() {
       </nav>
 
       {/* Mobile Navigation Menu */}
-      <div 
-        className={`fixed inset-0 z-40 transition-all duration-300 sm:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        id="mobile-menu"
-        aria-hidden={!mobileMenuOpen}
-      >
+      <div className={`fixed inset-0 z-40 transition-all duration-300 sm:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} id="mobile-menu" aria-hidden={!mobileMenuOpen}>
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
         <div className={`absolute top-16 right-0 w-64 p-4 rounded-bl-2xl shadow-xl transition-all duration-300 transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"} ${isDark ? "bg-slate-800 border-l border-b border-slate-700/50" : "bg-white border-l border-b border-sky-200/50"}`}>
           <div className="flex flex-col space-y-2" role="menu" aria-label="Mobile navigation menu">
@@ -148,8 +144,8 @@ function App() {
             ))}
 
             {/* Theme Toggle in mobile menu */}
-            <button 
-              onClick={toggleTheme} 
+            <button
+              onClick={toggleTheme}
               className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 ${isDark ? "text-gray-300 hover:text-white hover:bg-slate-700/50" : "text-gray-600 hover:text-gray-900 hover:bg-sky-50"}`}
               role="menuitem"
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
@@ -164,13 +160,7 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 pt-16 sm:pt-20" id="main-content" role="main">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <div 
-            className={`transition-all duration-300 ${isDark ? "text-white" : "text-gray-900"}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${tab}`}
-            id={`panel-${tab}`}
-            tabIndex={0}
-          >
+          <div className={`transition-all duration-300 ${isDark ? "text-white" : "text-gray-900"}`} role="tabpanel" aria-labelledby={`tab-${tab}`} id={`panel-${tab}`} tabIndex={0}>
             {TABS[tab].component}
           </div>
         </div>
@@ -181,10 +171,7 @@ function App() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center text-sm">
             <p>JWTBench &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</p>
-            <p className="mt-2 text-xs">
-              Professional JWT decoder, encoder, and verification tool for developers. 
-              All processing happens in your browser for maximum security.
-            </p>
+            <p className="mt-2 text-xs">Professional JWT decoder, encoder, and verification tool for developers. All processing happens in your browser for maximum security.</p>
           </div>
         </div>
       </footer>

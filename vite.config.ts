@@ -9,22 +9,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          crypto: ['jose'],
-          ui: ['lucide-react', 'sonner', '@uiw/react-codemirror']
-        }
-      }
+          vendor: ["react", "react-dom"],
+          crypto: ["jose"],
+          ui: ["lucide-react", "sonner", "@uiw/react-codemirror"],
+        },
+      },
     },
-    minify: 'esbuild',
-    target: 'esnext'
+    minify: "esbuild",
+    target: "esnext",
   },
   server: {
     headers: {
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
-    }
-  }
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "X-XSS-Protection": "1; mode=block",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    },
+  },
 })
