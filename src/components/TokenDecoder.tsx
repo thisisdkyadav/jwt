@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { base64url, jwtVerify, importSPKI, decodeJwt } from "jose"
 import { toast } from "sonner"
-import { Copy, Trash2, CheckCircle, XCircle, AlertCircle, Clock, Shield } from "lucide-react"
+import { Copy, Trash2, CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react"
 
 const ALGORITHMS = [
   { label: "HS256 (HMAC SHA-256)", value: "HS256" },
@@ -81,22 +81,41 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
   const [expirationStatus, setExpirationStatus] = useState<{ status: string; message: string } | null>(null)
   const [verificationError, setVerificationError] = useState("")
 
-  const { header, payload, signature, error } = useMemo(() => {
-    if (!jwt) return { header: null, payload: null, signature: "", error: "" }
+  const { header, payload, error } = useMemo(() => {
+    if (!jwt) return { header: null, payload: null, error: "" }
     const parts = jwt.split(".")
     if (parts.length !== 3) {
       return {
         header: null,
         payload: null,
-        signature: "",
         error: "JWT must have 3 parts (header.payload.signature)",
       }
     }
     const header = parseJwtPart(parts[0])
     const payload = parseJwtPart(parts[1])
-    const signature = parts[2]
-    return { header, payload, signature, error: "" }
+    return { header, payload, error: "" }
   }, [jwt])
+
+  // Auto-detect algorithm from JWT header
+  useEffect(() => {
+    if (header?.alg && ALGORITHMS.find((a) => a.value === header.alg)) {
+      setAlg(header.alg)
+    }
+  }, [header])
+
+  // Auto-verify when both JWT and key are present
+  useEffect(() => {
+    if (jwt && key && !error) {
+      const timer = setTimeout(() => {
+        handleVerify()
+      }, 300) // Small delay to avoid excessive API calls while typing
+      return () => clearTimeout(timer)
+    } else {
+      setVerificationResult(null)
+      setVerificationError("")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jwt, key, alg])
 
   useEffect(() => {
     if (jwt) {
@@ -107,25 +126,15 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
   }, [jwt])
 
   const handleVerify = async () => {
+    if (!jwt || !key) return
+
     setVerificationError("")
     setVerificationResult(null)
-
-    if (!jwt || !key) {
-      setVerificationError("JWT and key are required")
-      return
-    }
 
     try {
       const result = await verifyJwt({ jwt, key, alg })
       setVerificationResult(result)
-
-      if (result.valid) {
-        toast.success("Signature verified successfully")
-      } else {
-        toast.error("Signature verification failed")
-      }
     } catch (e) {
-      toast.error("Verification process failed")
       setVerificationError("An unexpected error occurred during verification")
     }
   }
@@ -144,23 +153,24 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
   }
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault()
     const pastedText = e.clipboardData.getData("text")
     setJwt(pastedText.trim())
   }
 
   return (
     <div className="w-full h-full">
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         {/* Main Layout - Side by side on wide screens */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 min-h-0">
           {/* Left Panel - Input & Verification */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* JWT Input Section */}
-            <div className={`rounded-3xl p-6 sm:p-8 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
-                  <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>JWT Token</h3>
+            <div className={`rounded-3xl p-4 sm:p-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+                  <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>JWT Token</h3>
                 </div>
                 <div className="flex items-center gap-2">
                   {expirationStatus && (
@@ -201,9 +211,9 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
                 </div>
               </div>
               <textarea
-                className={`w-full p-4 sm:p-5 rounded-2xl font-mono text-sm sm:text-base 
+                className={`w-full p-3 sm:p-4 rounded-2xl font-mono text-sm 
                          focus:outline-none transition-all duration-300 resize-none
-                         min-h-[120px] sm:min-h-[140px] focus-ring ${
+                         min-h-[100px] sm:min-h-[120px] focus-ring ${
                            isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"
                          }`}
                 value={jwt}
@@ -211,23 +221,23 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
                 onPaste={handlePaste}
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
               />
-              {error && <div className={`mt-4 p-4 rounded-2xl border font-medium ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
+              {error && <div className={`mt-3 p-3 rounded-2xl border font-medium ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
             </div>
 
             {/* Verification Section */}
             {jwt && !error && (
-              <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                  <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature Verification</h3>
+              <div className={`rounded-3xl p-4 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                  <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature Verification</h3>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Secret/Key Input */}
-                  <div className="space-y-3">
-                    <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Secret / Public Key</label>
+                  <div className="space-y-2">
+                    <label className={`block font-medium text-xs tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Secret / Public Key</label>
                     <input
-                      className={`w-full p-4 rounded-2xl font-mono text-sm 
+                      className={`w-full p-3 rounded-2xl font-mono text-sm 
                                focus:outline-none transition-all duration-300 focus-ring ${
                                  isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"
                                }`}
@@ -239,10 +249,10 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
                   </div>
 
                   {/* Algorithm Selection */}
-                  <div className="space-y-3">
-                    <label className={`block font-medium text-sm tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Algorithm</label>
+                  <div className="space-y-2">
+                    <label className={`block font-medium text-xs tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Algorithm {header?.alg && <span className="text-xs opacity-60">(auto-detected)</span>}</label>
                     <select
-                      className={`w-full p-4 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${
+                      className={`w-full p-3 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${
                         isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"
                       }`}
                       value={alg}
@@ -257,42 +267,25 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
                   </div>
                 </div>
 
-                {/* Verify Button */}
-                <div className="flex justify-center pt-4">
-                  <button
-                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 
-                             text-white font-semibold text-sm tracking-wide
-                             hover:from-emerald-600 hover:to-emerald-700 
-                             transition-all duration-300 transform hover:scale-105 
-                             shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
-                             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
-                    onClick={handleVerify}
-                    disabled={!jwt || !key}
-                  >
-                    <Shield size={16} />
-                    Verify Signature
-                  </button>
-                </div>
-
                 {/* Verification Results */}
                 {verificationError && (
-                  <div className={`rounded-2xl p-4 border transition-all duration-300 ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
-                    <div className="flex items-center gap-3">
-                      <XCircle size={18} />
-                      <span className="font-medium">{verificationError}</span>
+                  <div className={`rounded-2xl p-3 border transition-all duration-300 ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
+                    <div className="flex items-center gap-2">
+                      <XCircle size={16} />
+                      <span className="font-medium text-sm">{verificationError}</span>
                     </div>
                   </div>
                 )}
 
                 {verificationResult && (
                   <div
-                    className={`rounded-2xl p-4 border transition-all duration-300 ${
+                    className={`rounded-2xl p-3 border transition-all duration-300 ${
                       verificationResult.valid ? (isDark ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" : "bg-emerald-50 border-emerald-200 text-emerald-700") : isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      {verificationResult.valid ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                      <span className="font-medium">{verificationResult.valid ? "Signature Valid" : `Invalid: ${verificationResult.reason}`}</span>
+                    <div className="flex items-center gap-2">
+                      {verificationResult.valid ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                      <span className="font-medium text-sm">{verificationResult.valid ? "Signature Valid" : `Invalid: ${verificationResult.reason}`}</span>
                     </div>
                   </div>
                 )}
@@ -301,26 +294,26 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
           </div>
 
           {/* Right Panel - Decoded Results */}
-          {(header || payload || signature) && (
-            <div className="space-y-6">
+          {(header || payload) && (
+            <div className="space-y-4">
               {/* Header */}
               {header && (
-                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                <div className={`rounded-3xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
-                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
+                      <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
                     </div>
                     <button
                       onClick={() => copyToClipboard(JSON.stringify(header, null, 2), "Header")}
                       className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                       aria-label="Copy header to clipboard"
                     >
-                      <Copy size={16} />
+                      <Copy size={14} />
                     </button>
                   </div>
                   <pre
-                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
+                    className={`rounded-2xl p-3 text-xs sm:text-sm overflow-x-auto 
                                  whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-sky-200" : "bg-sky-50/50 border border-sky-200/50 text-sky-800 shadow-inner"}`}
                   >
                     {JSON.stringify(header, null, 2)}
@@ -330,73 +323,48 @@ const TokenDecoder = ({ isDark = true }: TokenDecoderProps) => {
 
               {/* Payload */}
               {payload && (
-                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+                <div className={`rounded-3xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                      <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
                     </div>
                     <button
                       onClick={() => copyToClipboard(JSON.stringify(payload, null, 2), "Payload")}
                       className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                       aria-label="Copy payload to clipboard"
                     >
-                      <Copy size={16} />
+                      <Copy size={14} />
                     </button>
                   </div>
                   <pre
-                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
+                    className={`rounded-2xl p-3 text-xs sm:text-sm overflow-x-auto 
                                  whitespace-pre-wrap font-mono leading-relaxed ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-emerald-200" : "bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 shadow-inner"}`}
                   >
                     {JSON.stringify(payload, null, 2)}
                   </pre>
 
                   {/* Timestamps */}
-                  <div className="grid grid-cols-1 gap-2 mt-4 text-xs sm:text-sm">
+                  <div className="grid grid-cols-1 gap-2 mt-3 text-xs">
                     {payload.exp && (
-                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                      <div className={`rounded-xl p-2 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
                         <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Expires:</span>
                         <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.exp)}</span>
                       </div>
                     )}
                     {payload.iat && (
-                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                      <div className={`rounded-xl p-2 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
                         <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Issued:</span>
                         <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.iat)}</span>
                       </div>
                     )}
                     {payload.nbf && (
-                      <div className={`rounded-xl p-3 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
+                      <div className={`rounded-xl p-2 flex justify-between items-center ${isDark ? "bg-slate-700/30 border border-slate-600/30" : "bg-white/50 border border-sky-200/30 shadow-sm"}`}>
                         <span className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"}`}>Not Before:</span>
                         <span className={`font-mono ${isDark ? "text-white" : "text-gray-900"}`}>{formatTimestamp(payload.nbf)}</span>
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* Signature */}
-              {signature && (
-                <div className={`rounded-3xl p-5 sm:p-6 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
-                      <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Signature</h3>
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(signature, "Signature")}
-                      className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
-                      aria-label="Copy signature to clipboard"
-                    >
-                      <Copy size={16} />
-                    </button>
-                  </div>
-                  <pre
-                    className={`rounded-2xl p-4 text-xs sm:text-sm overflow-x-auto 
-                                 whitespace-pre-wrap font-mono leading-relaxed break-all ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-purple-200" : "bg-purple-50/50 border border-purple-200/50 text-purple-800 shadow-inner"}`}
-                  >
-                    {signature}
-                  </pre>
                 </div>
               )}
             </div>

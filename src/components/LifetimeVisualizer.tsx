@@ -104,62 +104,64 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
   }
 
   return (
-    <div className="w-full">
-      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
-        {/* JWT Input */}
-        <div className={`rounded-3xl p-6 sm:p-8 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
-              <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>JWT Token</h3>
+    <div className="h-full flex flex-col lg:flex-row gap-3">
+      {/* JWT Input */}
+      <div className="flex-1">
+        <div className={`rounded-xl p-4 space-y-3 h-full transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
+              <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>JWT Token</h3>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => copyToClipboard(jwt, "JWT")}
-                className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                className={`p-1.5 rounded-md transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                 aria-label="Copy JWT to clipboard"
                 disabled={!jwt}
               >
-                <Copy size={16} />
+                <Copy size={14} />
               </button>
 
-              <button onClick={clearAll} className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`} aria-label="Clear all fields">
-                <Trash2 size={16} />
+              <button onClick={clearAll} className={`p-1.5 rounded-md transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`} aria-label="Clear all fields">
+                <Trash2 size={14} />
               </button>
             </div>
           </div>
 
           <textarea
-            className={`w-full p-4 sm:p-5 rounded-2xl font-mono text-sm sm:text-base 
+            className={`w-full p-3 rounded-lg font-mono text-sm 
                      focus:outline-none transition-all duration-300 resize-none
-                     min-h-[100px] sm:min-h-[120px] focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"}`}
-            rows={3}
+                     min-h-[100px] focus-ring ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"}`}
+            rows={4}
             value={jwt}
             onChange={(e) => setJwt(e.target.value.trim())}
             onPaste={handlePaste}
             placeholder="Paste JWT token to visualize its lifetime"
           />
-          {error && <div className={`p-4 rounded-2xl border font-medium ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
+          {error && <div className={`p-3 rounded-lg border font-medium text-sm ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>{error}</div>}
         </div>
+      </div>
 
-        {/* Timeline Visualization */}
-        {payload && (
-          <div className={`rounded-3xl p-6 sm:p-8 space-y-6 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                <h3 className={`font-bold text-lg sm:text-xl tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Token Lifetime</h3>
+      {/* Timeline Visualization */}
+      {payload && (
+        <div className="flex-1">
+          <div className={`rounded-xl p-4 space-y-4 h-full transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+                <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Token Lifetime</h3>
               </div>
 
               {timeRemaining && (
                 <div
-                  className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5
                   ${
                     timeRemaining.negative ? (isDark ? "bg-red-500/20 text-red-300 border border-red-500/30" : "bg-red-100 text-red-700 border border-red-200") : isDark ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-emerald-100 text-emerald-700 border border-emerald-200"
                   }`}
                 >
-                  <Clock size={14} />
+                  <Clock size={12} />
                   <span>
                     {timeRemaining.label}: {timeRemaining.value}
                   </span>
@@ -169,7 +171,7 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
 
             {/* Status */}
             <div
-              className={`rounded-2xl p-6 mb-6 ${
+              className={`rounded-lg p-4 ${
                 status === "active"
                   ? isDark
                     ? "bg-emerald-500/10 border border-emerald-500/30"
@@ -183,28 +185,28 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
                   : "bg-amber-50 border border-amber-200"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {status === "active" ? (
-                  <CheckCircle size={20} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
+                  <CheckCircle size={16} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
                 ) : status === "expired" ? (
-                  <AlertTriangle size={20} className={isDark ? "text-red-400" : "text-red-600"} />
+                  <AlertTriangle size={16} className={isDark ? "text-red-400" : "text-red-600"} />
                 ) : (
-                  <Clock size={20} className={isDark ? "text-amber-400" : "text-amber-600"} />
+                  <Clock size={16} className={isDark ? "text-amber-400" : "text-amber-600"} />
                 )}
-                <span className={`font-semibold text-lg ${status === "active" ? (isDark ? "text-emerald-300" : "text-emerald-700") : status === "expired" ? (isDark ? "text-red-300" : "text-red-700") : isDark ? "text-amber-300" : "text-amber-700"}`}>
+                <span className={`font-semibold text-sm ${status === "active" ? (isDark ? "text-emerald-300" : "text-emerald-700") : status === "expired" ? (isDark ? "text-red-300" : "text-red-700") : isDark ? "text-amber-300" : "text-amber-700"}`}>
                   {status === "active" ? "Token is Active" : status === "expired" ? "Token has Expired" : "Token is Not Yet Valid"}
                 </span>
               </div>
             </div>
 
             {/* Timeline */}
-            <div className="space-y-4">
-              <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Timeline Visualization</h4>
-              <div ref={timelineRef} className={`relative h-16 rounded-2xl flex items-center px-4 overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-sky-50/50 border border-sky-200/50 shadow-inner"}`}>
+            <div className="space-y-3">
+              <h4 className={`font-medium text-sm ${isDark ? "text-white" : "text-gray-900"}`}>Timeline Visualization</h4>
+              <div ref={timelineRef} className={`relative h-12 rounded-lg flex items-center px-3 overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-sky-50/50 border border-sky-200/50 shadow-inner"}`}>
                 {/* Active period visualization */}
                 {nbf && exp && (
                   <div
-                    className={`absolute h-2 rounded-full ${isDark ? "bg-sky-500/30" : "bg-sky-500/20"}`}
+                    className={`absolute h-1.5 rounded-full ${isDark ? "bg-sky-500/30" : "bg-sky-500/20"}`}
                     style={{
                       left: `${percent(nbf)}%`,
                       width: `${percent(exp) - percent(nbf)}%`,
@@ -223,7 +225,7 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 bg-sky-500 rounded-full mb-1"></div>
+                      <div className="w-2 h-2 bg-sky-500 rounded-full mb-0.5"></div>
                       <div className={`text-xs font-medium ${isDark ? "text-sky-300" : "text-sky-700"}`}>IAT</div>
                     </div>
                   </div>
@@ -237,7 +239,7 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 bg-amber-500 rounded-full mb-1"></div>
+                      <div className="w-2 h-2 bg-amber-500 rounded-full mb-0.5"></div>
                       <div className={`text-xs font-medium ${isDark ? "text-amber-300" : "text-amber-700"}`}>NBF</div>
                     </div>
                   </div>
@@ -250,7 +252,7 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
                   }}
                 >
                   <div className="flex flex-col items-center">
-                    <div className="w-4 h-4 bg-emerald-500 rounded-full mb-1 shadow-lg shadow-emerald-500/50"></div>
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full mb-0.5 shadow-lg shadow-emerald-500/50"></div>
                     <div className={`text-xs font-medium ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>NOW</div>
                   </div>
                 </div>
@@ -263,7 +265,7 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 bg-red-500 rounded-full mb-1"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full mb-0.5"></div>
                       <div className={`text-xs font-medium ${isDark ? "text-red-300" : "text-red-700"}`}>EXP</div>
                     </div>
                   </div>
@@ -281,33 +283,33 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
             </div>
 
             {/* Timestamp Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-2 gap-2 mt-4">
               {iat && (
-                <div className={`rounded-2xl p-4 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                   <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Issued At</div>
-                  <div className={`text-sm font-mono ${isDark ? "text-sky-300" : "text-sky-700"}`}>{formatTimestamp(iat)}</div>
+                  <div className={`text-xs font-mono ${isDark ? "text-sky-300" : "text-sky-700"}`}>{formatTimestamp(iat)}</div>
                 </div>
               )}
               {nbf && (
-                <div className={`rounded-2xl p-4 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                   <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Not Before</div>
-                  <div className={`text-sm font-mono ${isDark ? "text-amber-300" : "text-amber-700"}`}>{formatTimestamp(nbf)}</div>
+                  <div className={`text-xs font-mono ${isDark ? "text-amber-300" : "text-amber-700"}`}>{formatTimestamp(nbf)}</div>
                 </div>
               )}
-              <div className={`rounded-2xl p-4 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+              <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                 <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Current Time</div>
-                <div className={`text-sm font-mono ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{formatTimestamp(now)}</div>
+                <div className={`text-xs font-mono ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{formatTimestamp(now)}</div>
               </div>
               {exp && (
-                <div className={`rounded-2xl p-4 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                   <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Expires At</div>
-                  <div className={`text-sm font-mono ${isDark ? "text-red-300" : "text-red-700"}`}>{formatTimestamp(exp)}</div>
+                  <div className={`text-xs font-mono ${isDark ? "text-red-300" : "text-red-700"}`}>{formatTimestamp(exp)}</div>
                 </div>
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
