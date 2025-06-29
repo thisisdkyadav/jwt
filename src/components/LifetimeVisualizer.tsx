@@ -145,171 +145,176 @@ const LifetimeVisualizer = ({ isDark = true }: LifetimeVisualizerProps) => {
       </div>
 
       {/* Timeline Visualization */}
-      {payload && (
-        <div className="flex-1">
-          <div className={`rounded-xl p-4 space-y-4 h-full transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Token Lifetime</h3>
-              </div>
-
-              {timeRemaining && (
-                <div
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5
-                  ${
-                    timeRemaining.negative ? (isDark ? "bg-red-500/20 text-red-300 border border-red-500/30" : "bg-red-100 text-red-700 border border-red-200") : isDark ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                  }`}
-                >
-                  <Clock size={12} />
-                  <span>
-                    {timeRemaining.label}: {timeRemaining.value}
-                  </span>
-                </div>
-              )}
+      <div className="flex-1">
+        <div className={`rounded-xl p-4 space-y-4 h-full transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+              <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Token Lifetime</h3>
             </div>
 
-            {/* Status */}
-            <div
-              className={`rounded-lg p-4 ${
-                status === "active"
-                  ? isDark
-                    ? "bg-emerald-500/10 border border-emerald-500/30"
-                    : "bg-emerald-50 border border-emerald-200"
-                  : status === "expired"
-                  ? isDark
-                    ? "bg-red-500/10 border border-red-500/30"
-                    : "bg-red-50 border border-red-200"
-                  : isDark
-                  ? "bg-amber-500/10 border border-amber-500/30"
-                  : "bg-amber-50 border border-amber-200"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {status === "active" ? (
-                  <CheckCircle size={16} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
-                ) : status === "expired" ? (
-                  <AlertTriangle size={16} className={isDark ? "text-red-400" : "text-red-600"} />
-                ) : (
-                  <Clock size={16} className={isDark ? "text-amber-400" : "text-amber-600"} />
-                )}
-                <span className={`font-semibold text-sm ${status === "active" ? (isDark ? "text-emerald-300" : "text-emerald-700") : status === "expired" ? (isDark ? "text-red-300" : "text-red-700") : isDark ? "text-amber-300" : "text-amber-700"}`}>
-                  {status === "active" ? "Token is Active" : status === "expired" ? "Token has Expired" : "Token is Not Yet Valid"}
+            {timeRemaining && (
+              <div
+                className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5
+                ${timeRemaining.negative ? (isDark ? "bg-red-500/20 text-red-300 border border-red-500/30" : "bg-red-100 text-red-700 border border-red-200") : isDark ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-emerald-100 text-emerald-700 border border-emerald-200"}`}
+              >
+                <Clock size={12} />
+                <span>
+                  {timeRemaining.label}: {timeRemaining.value}
                 </span>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Timeline */}
-            <div className="space-y-3">
-              <h4 className={`font-medium text-sm ${isDark ? "text-white" : "text-gray-900"}`}>Timeline Visualization</h4>
-              <div ref={timelineRef} className={`relative h-12 rounded-lg flex items-center px-3 overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-sky-50/50 border border-sky-200/50 shadow-inner"}`}>
-                {/* Active period visualization */}
-                {nbf && exp && (
-                  <div
-                    className={`absolute h-1.5 rounded-full ${isDark ? "bg-sky-500/30" : "bg-sky-500/20"}`}
-                    style={{
-                      left: `${percent(nbf)}%`,
-                      width: `${percent(exp) - percent(nbf)}%`,
-                      transition: "all 0.5s ease-in-out",
-                    }}
-                  ></div>
-                )}
+          {payload ? (
+            <>
+              {/* Status */}
+              <div
+                className={`rounded-lg p-4 ${
+                  status === "active"
+                    ? isDark
+                      ? "bg-emerald-500/10 border border-emerald-500/30"
+                      : "bg-emerald-50 border border-emerald-200"
+                    : status === "expired"
+                    ? isDark
+                      ? "bg-red-500/10 border border-red-500/30"
+                      : "bg-red-50 border border-red-200"
+                    : isDark
+                    ? "bg-amber-500/10 border border-amber-500/30"
+                    : "bg-amber-50 border border-amber-200"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {status === "active" ? (
+                    <CheckCircle size={16} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
+                  ) : status === "expired" ? (
+                    <AlertTriangle size={16} className={isDark ? "text-red-400" : "text-red-600"} />
+                  ) : (
+                    <Clock size={16} className={isDark ? "text-amber-400" : "text-amber-600"} />
+                  )}
+                  <span className={`font-semibold text-sm ${status === "active" ? (isDark ? "text-emerald-300" : "text-emerald-700") : status === "expired" ? (isDark ? "text-red-300" : "text-red-700") : isDark ? "text-amber-300" : "text-amber-700"}`}>
+                    {status === "active" ? "Token is Active" : status === "expired" ? "Token has Expired" : "Token is Not Yet Valid"}
+                  </span>
+                </div>
+              </div>
 
-                {/* Timeline points */}
-                {iat && (
+              {/* Timeline */}
+              <div className="space-y-3">
+                <h4 className={`font-medium text-sm ${isDark ? "text-white" : "text-gray-900"}`}>Timeline Visualization</h4>
+                <div ref={timelineRef} className={`relative h-12 rounded-lg flex items-center px-3 overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-sky-50/50 border border-sky-200/50 shadow-inner"}`}>
+                  {/* Active period visualization */}
+                  {nbf && exp && (
+                    <div
+                      className={`absolute h-1.5 rounded-full ${isDark ? "bg-sky-500/30" : "bg-sky-500/20"}`}
+                      style={{
+                        left: `${percent(nbf)}%`,
+                        width: `${percent(exp) - percent(nbf)}%`,
+                        transition: "all 0.5s ease-in-out",
+                      }}
+                    ></div>
+                  )}
+
+                  {/* Timeline points */}
+                  {iat && (
+                    <div
+                      className="absolute transform -translate-x-1/2"
+                      style={{
+                        left: `${percent(iat)}%`,
+                        transition: "all 0.5s ease-in-out",
+                      }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="w-2 h-2 bg-sky-500 rounded-full mb-0.5"></div>
+                        <div className={`text-xs font-medium ${isDark ? "text-sky-300" : "text-sky-700"}`}>IAT</div>
+                      </div>
+                    </div>
+                  )}
+                  {nbf && (
+                    <div
+                      className="absolute transform -translate-x-1/2"
+                      style={{
+                        left: `${percent(nbf)}%`,
+                        transition: "all 0.5s ease-in-out",
+                      }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full mb-0.5"></div>
+                        <div className={`text-xs font-medium ${isDark ? "text-amber-300" : "text-amber-700"}`}>NBF</div>
+                      </div>
+                    </div>
+                  )}
                   <div
-                    className="absolute transform -translate-x-1/2"
+                    className="absolute transform -translate-x-1/2 animate-pulse"
                     style={{
-                      left: `${percent(iat)}%`,
+                      left: `${percent(now)}%`,
                       transition: "all 0.5s ease-in-out",
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 bg-sky-500 rounded-full mb-0.5"></div>
-                      <div className={`text-xs font-medium ${isDark ? "text-sky-300" : "text-sky-700"}`}>IAT</div>
+                      <div className="w-3 h-3 bg-emerald-500 rounded-full mb-0.5 shadow-lg shadow-emerald-500/50"></div>
+                      <div className={`text-xs font-medium ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>NOW</div>
                     </div>
+                  </div>
+                  {exp && (
+                    <div
+                      className="absolute transform -translate-x-1/2"
+                      style={{
+                        left: `${percent(exp)}%`,
+                        transition: "all 0.5s ease-in-out",
+                      }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="w-2 h-2 bg-red-500 rounded-full mb-0.5"></div>
+                        <div className={`text-xs font-medium ${isDark ? "text-red-300" : "text-red-700"}`}>EXP</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timeline vertical line for current time */}
+                  <div
+                    className="absolute h-full w-px bg-emerald-500/70 top-0 animate-pulse"
+                    style={{
+                      left: `${percent(now)}%`,
+                      transition: "left 0.5s linear",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Timestamp Details */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {iat && (
+                  <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                    <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Issued At</div>
+                    <div className={`text-xs font-mono ${isDark ? "text-sky-300" : "text-sky-700"}`}>{formatTimestamp(iat)}</div>
                   </div>
                 )}
                 {nbf && (
-                  <div
-                    className="absolute transform -translate-x-1/2"
-                    style={{
-                      left: `${percent(nbf)}%`,
-                      transition: "all 0.5s ease-in-out",
-                    }}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 bg-amber-500 rounded-full mb-0.5"></div>
-                      <div className={`text-xs font-medium ${isDark ? "text-amber-300" : "text-amber-700"}`}>NBF</div>
-                    </div>
+                  <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                    <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Not Before</div>
+                    <div className={`text-xs font-mono ${isDark ? "text-amber-300" : "text-amber-700"}`}>{formatTimestamp(nbf)}</div>
                   </div>
                 )}
-                <div
-                  className="absolute transform -translate-x-1/2 animate-pulse"
-                  style={{
-                    left: `${percent(now)}%`,
-                    transition: "all 0.5s ease-in-out",
-                  }}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full mb-0.5 shadow-lg shadow-emerald-500/50"></div>
-                    <div className={`text-xs font-medium ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>NOW</div>
-                  </div>
+                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                  <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Current Time</div>
+                  <div className={`text-xs font-mono ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{formatTimestamp(now)}</div>
                 </div>
                 {exp && (
-                  <div
-                    className="absolute transform -translate-x-1/2"
-                    style={{
-                      left: `${percent(exp)}%`,
-                      transition: "all 0.5s ease-in-out",
-                    }}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mb-0.5"></div>
-                      <div className={`text-xs font-medium ${isDark ? "text-red-300" : "text-red-700"}`}>EXP</div>
-                    </div>
+                  <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                    <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Expires At</div>
+                    <div className={`text-xs font-mono ${isDark ? "text-red-300" : "text-red-700"}`}>{formatTimestamp(exp)}</div>
                   </div>
                 )}
-
-                {/* Timeline vertical line for current time */}
-                <div
-                  className="absolute h-full w-px bg-emerald-500/70 top-0 animate-pulse"
-                  style={{
-                    left: `${percent(now)}%`,
-                    transition: "left 0.5s linear",
-                  }}
-                ></div>
               </div>
+            </>
+          ) : (
+            <div className={`rounded-lg p-8 border-2 border-dashed text-center ${isDark ? "border-slate-600 text-gray-400" : "border-gray-300 text-gray-500"}`}>
+              <div className="text-sm mb-2">Enter a JWT token to visualize its lifetime</div>
+              <div className="text-xs opacity-70">We'll show you token validity period, expiration status, and timeline visualization</div>
             </div>
-
-            {/* Timestamp Details */}
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {iat && (
-                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-                  <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Issued At</div>
-                  <div className={`text-xs font-mono ${isDark ? "text-sky-300" : "text-sky-700"}`}>{formatTimestamp(iat)}</div>
-                </div>
-              )}
-              {nbf && (
-                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-                  <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Not Before</div>
-                  <div className={`text-xs font-mono ${isDark ? "text-amber-300" : "text-amber-700"}`}>{formatTimestamp(nbf)}</div>
-                </div>
-              )}
-              <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-                <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Current Time</div>
-                <div className={`text-xs font-mono ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{formatTimestamp(now)}</div>
-              </div>
-              {exp && (
-                <div className={`rounded-lg p-3 ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
-                  <div className={`text-xs font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Expires At</div>
-                  <div className={`text-xs font-mono ${isDark ? "text-red-300" : "text-red-700"}`}>{formatTimestamp(exp)}</div>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

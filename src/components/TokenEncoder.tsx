@@ -45,10 +45,10 @@ async function generateJwt({ header, payload, secret, alg }: GenerateJwtArgs): P
     }
     const jwt = await new SignJWT(parsedPayload).setProtectedHeader(parsedHeader).sign(key)
     return { jwt }
-  } catch (e) {
+  } catch (error) {
     let msg = "Unknown error"
-    if (typeof e === "string") msg = e
-    else if (e instanceof Error) msg = e.message
+    if (typeof error === "string") msg = error
+    else if (error instanceof Error) msg = error.message
     return { error: msg }
   }
 }
@@ -87,10 +87,10 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
         const updatedHeader = { ...headerObj, alg }
         setHeader(JSON.stringify(updatedHeader, null, 2))
       }
-    } catch (e) {
+    } catch {
       // Ignore parsing errors
     }
-  }, [alg])
+  }, [alg, header])
 
   const handleGenerate = async (showToasts = false) => {
     setError("")
@@ -104,7 +104,7 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
         setToken(jwt || "")
         if (showToasts) toast.success("JWT token generated successfully")
       }
-    } catch (e) {
+    } catch {
       if (showToasts) toast.error("An error occurred during token generation")
     }
   }
@@ -133,24 +133,24 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
             {/* Header and Payload Section */}
             <div className="grid grid-cols-1 gap-4">
               {/* Header */}
-              <div className={`rounded-3xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+              <div className={`rounded-xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-400 to-sky-600"></div>
-                    <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
+                    <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Header</h3>
                   </div>
                   <button
                     onClick={() => setHeader(defaultHeader)}
-                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                    className={`p-1.5 rounded-lg transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                     aria-label="Reset header to default"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <div className={`rounded-2xl overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                <div className={`rounded-lg overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                   <CodeMirror
                     value={header}
-                    height="100px"
+                    height="80px"
                     extensions={[json()]}
                     onChange={setHeader}
                     theme={isDark ? "dark" : "light"}
@@ -164,21 +164,21 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
               </div>
 
               {/* Payload */}
-              <div className={`rounded-3xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+              <div className={`rounded-xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                    <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
+                    <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Payload</h3>
                   </div>
                   <button
                     onClick={() => setPayload(defaultPayload)}
-                    className={`p-2 rounded-xl transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
+                    className={`p-1.5 rounded-lg transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                     aria-label="Reset payload to default"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <div className={`rounded-2xl overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
+                <div className={`rounded-lg overflow-hidden ${isDark ? "bg-slate-700/50 border border-slate-600/50" : "bg-white/50 border border-sky-200/50 shadow-inner"}`}>
                   <CodeMirror
                     value={payload}
                     height="120px"
@@ -194,17 +194,20 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* Right Panel - Configuration & Generated Token */}
+          <div className="space-y-4">
             {/* Configuration Section */}
-            <div className={`rounded-3xl p-4 sm:p-5 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+            <div className={`rounded-xl p-4 sm:p-5 space-y-4 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
-                  <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Configuration</h3>
+                  <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Configuration</h3>
                 </div>
                 <button
                   onClick={clearAll}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium flex items-center gap-2
+                  className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-2
                     transition-all duration-200 ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                   aria-label="Reset all fields"
                 >
@@ -213,12 +216,12 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {/* Algorithm Selection */}
                 <div className="space-y-2">
                   <label className={`block font-medium text-xs tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Algorithm</label>
                   <select
-                    className={`w-full p-3 rounded-2xl text-sm focus:outline-none transition-all duration-300 focus-ring ${
+                    className={`w-full p-3 rounded-lg text-sm focus:outline-none transition-all duration-300 focus-ring ${
                       isDark ? "bg-slate-700/50 border border-slate-600/50 text-white focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 focus:border-sky-500 shadow-inner"
                     }`}
                     value={alg}
@@ -235,12 +238,11 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                 {/* Secret/Key Input */}
                 <div className="space-y-2">
                   <label className={`block font-medium text-xs tracking-wide ${isDark ? "text-white/90" : "text-gray-700"}`}>Secret / Private Key</label>
-                  <input
-                    className={`w-full p-3 rounded-2xl font-mono text-sm 
-                             focus:outline-none transition-all duration-300 focus-ring ${
-                               isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"
-                             }`}
-                    type="text"
+                  <textarea
+                    className={`w-full p-3 rounded-lg font-mono text-sm 
+                             focus:outline-none transition-all duration-300 focus-ring resize-none
+                             min-h-[80px] ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-gray-400 focus:border-sky-500/50" : "bg-white/50 border border-sky-200/50 text-gray-900 placeholder:text-gray-500 focus:border-sky-500 shadow-inner"}`}
+                    rows={4}
                     value={secret}
                     onChange={(e) => setSecret(e.target.value)}
                     placeholder="Enter secret or private key"
@@ -248,39 +250,36 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Panel - Generated Token */}
-          <div className="space-y-4">
             {/* Generated Token */}
-            {token && (
-              <div className={`rounded-3xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
-                    <h3 className={`font-semibold text-base sm:text-lg tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Generated JWT</h3>
-                  </div>
+            <div className={`rounded-xl p-4 sm:p-5 space-y-3 transition-all duration-300 ${isDark ? "bg-slate-800/50 backdrop-blur-xl border border-slate-700/50" : "bg-white/70 backdrop-blur-xl border border-sky-200/50 shadow-xl"}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
+                  <h3 className={`font-semibold text-sm tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>Generated JWT</h3>
+                </div>
+                {token && (
                   <button
-                    className={`p-2 rounded-xl transition-all duration-200 flex items-center gap-2
+                    className={`p-1.5 rounded-lg transition-all duration-200 flex items-center gap-2
                              ${isDark ? "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-600/50" : "bg-sky-50 text-gray-600 hover:text-gray-900 hover:bg-sky-100"}`}
                     onClick={copyToClipboard}
                     aria-label="Copy token to clipboard"
                   >
                     <Copy size={14} />
                   </button>
-                </div>
-                <pre
-                  className={`rounded-2xl p-3 text-xs 
-                               overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed break-all ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-amber-200" : "bg-amber-50/50 border border-amber-200/50 text-amber-800 shadow-inner"}`}
-                >
-                  {token}
-                </pre>
+                )}
               </div>
-            )}
+              <div
+                className={`rounded-lg p-3 text-xs 
+                             overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed break-all min-h-[120px] ${isDark ? "bg-slate-700/50 border border-slate-600/50 text-amber-200" : "bg-amber-50/50 border border-amber-200/50 text-amber-800 shadow-inner"}`}
+              >
+                {token || <div className={`text-center py-8 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Fill in all fields above to generate a JWT token</div>}
+              </div>
+            </div>
 
             {/* Error Display */}
             {error && (
-              <div className={`rounded-3xl p-4 border transition-all duration-300 ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
+              <div className={`rounded-xl p-4 border transition-all duration-300 ${isDark ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-red-400"></div>
                   <span className="font-medium text-sm">{error}</span>
@@ -292,7 +291,7 @@ const TokenEncoder = ({ isDark = true }: TokenEncoderProps) => {
             {!token && secret && (
               <div className="flex justify-center">
                 <button
-                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 
+                  className="px-6 py-3 rounded-lg bg-gradient-to-r from-sky-500 to-sky-600 
                            text-white font-semibold text-sm tracking-wide
                            hover:from-sky-600 hover:to-sky-700 
                            transition-all duration-300 transform hover:scale-105 
