@@ -167,11 +167,35 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className={`border-t py-6 ${isDark ? "bg-slate-900/50 border-slate-700/50 text-gray-400" : "bg-white/50 border-sky-200/50 text-gray-500"}`} role="contentinfo">
+      <footer className={`border-t py-8 ${isDark ? "bg-slate-900/50 border-slate-700/50 text-gray-400" : "bg-white/50 border-sky-200/50 text-gray-500"}`} role="contentinfo">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm">
-            <p>JWTBench &copy; {new Date().getFullYear()} &mdash; Secure, client-side processing</p>
-            <p className="mt-2 text-xs">Professional JWT decoder, encoder, and verification tool for developers. All processing happens in your browser for maximum security.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Brand & Description */}
+            <div className="md:col-span-2">
+              <h2 className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>JWTBench - Professional JWT Developer Tool</h2>
+              <p className="text-sm mb-2">The most comprehensive JWT (JSON Web Token) decoder, encoder, and verification tool for developers. Supports HMAC (HS256, HS384, HS512), RSA (RS256, RS384, RS512), and ECDSA (ES256, ES384, ES512) algorithms.</p>
+              <p className="text-xs">Free, secure, client-side JWT debugging tool with signature verification, secret strength analysis, cryptographic key generation, and token lifetime visualization. All processing happens in your browser for maximum security.</p>
+            </div>
+
+            {/* Features */}
+            <div>
+              <h3 className={`text-sm font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>Features</h3>
+              <ul className="text-xs space-y-1">
+                <li>• JWT Token Decoder & Parser</li>
+                <li>• JWT Token Encoder & Generator</li>
+                <li>• Digital Signature Verification</li>
+                <li>• Secret Strength Analysis</li>
+                <li>• Cryptographic Key Generator</li>
+                <li>• Token Lifetime Visualizer</li>
+                <li>• JOSE Standard Compliance</li>
+                <li>• Zero Server Processing</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t pt-4 text-center text-sm">
+            <p>JWTBench &copy; {new Date().getFullYear()} &mdash; RFC 7519 Compliant JWT Tool</p>
+            <p className="mt-1 text-xs">Professional JWT authentication and authorization token tool for developers, security engineers, and DevOps teams.</p>
           </div>
         </div>
       </footer>

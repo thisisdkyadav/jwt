@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "build:production": "npm run lint && npm run build",
+    "deploy:netlify": "npm run build:production && netlify deploy --prod --dir dist",
+    "seo:audit": "lighthouse https://localhost:5173 --output=html --output-path=./seo-audit.html",
+    "seo:test": "npm run build && npm run preview"
+  }
+}

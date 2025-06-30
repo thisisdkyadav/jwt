@@ -10,7 +10,7 @@
   <meta name="description"
     content="Free online JWT decoder, encoder, and verification tool. Decode, create, and verify JSON Web Tokens with HMAC & RSA signatures. Security strength checker, key generator, and lifetime visualizer included." />
   <meta name="keywords"
-    content="JWT, JSON Web Token, JWT decoder, JWT encoder, JWT verifier, JWT debugger, JWT parser, JWT validator, HMAC, HS256, HS384, HS512, RSA, RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, JWT security, JWT strength checker, JWT key generator, authentication, authorization, token validation, JSON Web Signature, JWS, JSON Web Encryption, JWE, RFC 7519, JOSE, claims, payload, header, signature verification, bearer token, access token, ID token, refresh token" />
+    content="JWT, JSON Web Token, JWT decoder, JWT encoder, JWT verifier, JWT debugger, JWT parser, JWT validator, jet, jet tools, jwt bench, jwtbench, HMAC, HS256, HS384, HS512, RSA, RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, JWT security, JWT strength checker, JWT key generator, authentication, authorization, token validation, JSON Web Signature, JWS, JSON Web Encryption, JWE, RFC 7519, JOSE, claims, payload, header, signature verification, bearer token, access token, ID token, refresh token, andiindia, thisisdkyadav" />
   <meta name="author" content="JWTBench" />
   <meta name="robots" content="index, follow" />
   <meta name="language" content="English" />
@@ -95,6 +95,48 @@
       ],
       "browserRequirements": "Requires JavaScript. Works with Chrome, Firefox, Safari, Edge.",
       "screenshot": "https://jwt.andiindia.in/screenshot.png"
+    }
+    </script>
+
+  <!-- FAQ Schema for Rich Snippets -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is JWT?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JWT (JSON Web Token) is a compact, URL-safe means of representing claims to be transferred between two parties. It's commonly used for authentication and authorization in web applications."
+          }
+        },
+        {
+          "@type": "Question", 
+          "name": "How do I decode a JWT token?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Paste your JWT token into JWTBench's decoder. It will automatically parse the header and payload, showing you the decoded information and verifying the signature if you provide the secret key."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is JWTBench secure?",
+          "acceptedAnswer": {
+            "@type": "Answer", 
+            "text": "Yes, JWTBench processes all tokens client-side in your browser. No data is transmitted to external servers, ensuring your sensitive tokens remain private and secure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What JWT algorithms are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JWTBench supports HMAC (HS256, HS384, HS512), RSA (RS256, RS384, RS512), and ECDSA (ES256, ES384, ES512) algorithms for comprehensive JWT processing."
+          }
+        }
+      ]
     }
     </script>
 

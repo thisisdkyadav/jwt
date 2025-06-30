@@ -1,8 +1,40 @@
 {
-  "name": "app",
-  "private": true,
-  "version": "0.0.0",
+  "name": "jwtbench",
+  "private": false,
+  "version": "1.0.0",
   "type": "module",
+  "description": "Professional JWT decoder, encoder, and verification tool for developers. All processing happens client-side for maximum security.",
+  "keywords": [
+    "jwt",
+    "json-web-token",
+    "jwt-decoder",
+    "jwt-encoder",
+    "jwt-verifier",
+    "authentication",
+    "authorization",
+    "hmac",
+    "rsa",
+    "ecdsa",
+    "jose",
+    "security",
+    "developer-tools",
+    "jwt-bench",
+    "jet-tools"
+  ],
+  "author": {
+    "name": "Devesh Yadav",
+    "email": "thisisdkyadav@gmail.com",
+    "url": "https://github.com/thisisdkyadav"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thisisdkyadav/jwtbench.git"
+  },
+  "homepage": "https://jwt.andiindia.in",
+  "bugs": {
+    "url": "https://github.com/thisisdkyadav/jwtbench/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
